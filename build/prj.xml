@@ -3,7 +3,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor1_1.jar</jar>
-  <outfile>C:\Users\aleksandr\GitHub\GoodsDistributor\releases\1.1\GoodsDistributor1_1.exe</outfile>
+  <outfile>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor1_1.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
