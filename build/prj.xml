@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>c:\SpeechScoring\Projects\Java\GoodsDistributor\build\GoodsDistributor.jar</jar>
-  <outfile>c:\SpeechScoring\Projects\Java\GoodsDistributor\build\GoodsDistributor.exe</outfile>
+  <jar>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor1_1.jar</jar>
+  <outfile>C:\Users\aleksandr\GitHub\GoodsDistributor\releases\1.1\GoodsDistributor1_1.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
@@ -10,14 +11,31 @@
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
   <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon>c:\SpeechScoring\Projects\Java\GoodsDistributor\build\coins_5218.ico</icon>
+  <icon>C:\Users\aleksandr\GitHub\GoodsDistributor\build\coins_5218.ico</icon>
   <jre>
     <path></path>
     <bundledJre64Bit>false</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
     <minVersion>1.7.0</minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
+    <runtimeBits>64/32</runtimeBits>
     <maxHeapSize>2048</maxHeapSize>
   </jre>
+  <versionInfo>
+    <fileVersion>1.1.0.0</fileVersion>
+    <txtFileVersion>v1.1</txtFileVersion>
+    <fileDescription>Товарный калькулятор</fileDescription>
+    <copyright>Oleksandr Chekmez</copyright>
+    <productVersion>1.1.0.0</productVersion>
+    <txtProductVersion>v1.1</txtProductVersion>
+    <productName>Товарный калькулятор</productName>
+    <companyName></companyName>
+    <internalName>Товарный калькулятор</internalName>
+    <originalFilename>GoodsDistributor1_1.exe</originalFilename>
+    <trademarks></trademarks>
+    <language>RUSSIAN</language>
+  </versionInfo>
 </launch4jConfig>

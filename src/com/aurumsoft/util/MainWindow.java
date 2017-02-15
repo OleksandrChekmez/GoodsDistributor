@@ -16,11 +16,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
@@ -65,6 +68,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class MainWindow {
 
 	private static final Log log = LogFactory.getLog(MainWindow.class);
+	private static final String dayMoneyMinProp = "dayMoneyMin";
+	private static final String dayMoneyMaxProp = "dayMoneyMax";
+	private static final String spinnerMaxGoodsQuantityProp = "spinnerMaxGoodsQuantity";
+	private static final String checkBoxOpenFilesProp = "checkBoxOpenFiles";
+	private static final String checkBoxDoNotChangeWarehouseProp = "checkBoxDoNotChangeWarehouse";
 
 	private static final String iconName = "coins.png";
 	private static Image iconImage;
@@ -86,6 +94,7 @@ public class MainWindow {
 	private JRadioButton radioButtonFirst;
 	private JRadioButton radioButtonSecond;
 	private JProgressBar progressBar;
+	private Properties props = new Properties();
 
 	private JSpinner spinnerMaxGoodsQuantity;
 
@@ -101,7 +110,7 @@ public class MainWindow {
 			public void run() {
 				try {
 					MainWindow window = new MainWindow();
-					window.frame.setVisible(true);
+					window.frame.setVisible(true);					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -122,12 +131,7 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			public void run() {
-				saveExcludedCategories();
-			}
-		}));
-		frame.setTitle("Товарный калькулятор");
+		frame.setTitle("Товарный калькулятор v1.1");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 710, 320);
 		frame.setMinimumSize(new Dimension(710, 320));
@@ -188,7 +192,14 @@ public class MainWindow {
 					public void run() {
 						enableControls(false);
 						progressBar.setIndeterminate(true);
-						calculate();
+						try {
+							calculate();
+						} catch (Exception e) {
+							log.error(e.getMessage(), e);
+							JOptionPane.showMessageDialog(frame, "Не предвиденная ошибка:"
+									+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
+									JOptionPane.ERROR_MESSAGE);
+						}
 						progressBar.setIndeterminate(false);
 						enableControls(true);
 					}
@@ -239,65 +250,60 @@ public class MainWindow {
 		JLabel label_3 = new JLabel("Максимальное количество товара:");
 
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
-		groupLayout
-				.setHorizontalGroup(
-						groupLayout.createParallelGroup(Alignment.TRAILING)
-								.addGroup(
-										groupLayout.createSequentialGroup().addContainerGap()
+		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addGroup(groupLayout
+				.createSequentialGroup().addContainerGap()
+				.addGroup(groupLayout
+						.createParallelGroup(Alignment.TRAILING).addGroup(groupLayout.createSequentialGroup()
+								.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addComponent(label_3)
+										.addComponent(label_2).addComponent(label_1)
+										.addComponent(label).addComponent(label_5).addComponent(label_6))
+								.addPreferredGap(ComponentPlacement.RELATED).addGroup(
+										groupLayout.createParallelGroup(Alignment.LEADING)
 												.addGroup(groupLayout
-														.createParallelGroup(
-																Alignment.TRAILING)
-														.addGroup(
-																groupLayout.createSequentialGroup()
-																		.addGroup(
-																				groupLayout
-																						.createParallelGroup(
-																								Alignment.TRAILING)
-																						.addComponent(label_3)
-																						.addComponent(label_2)
-																						.addComponent(label_1)
-																						.addComponent(label)
-																						.addComponent(label_5)
-																						.addComponent(label_6))
-																		.addPreferredGap(
-																				ComponentPlacement.RELATED)
-								.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-										.addGroup(groupLayout.createSequentialGroup().addComponent(checkBoxOpenFiles)
-												.addPreferredGap(ComponentPlacement.RELATED, 101, Short.MAX_VALUE)
-												.addComponent(btnCalculate))
-										.addGroup(groupLayout.createSequentialGroup().addGroup(groupLayout
-												.createParallelGroup(Alignment.LEADING)
-												.addComponent(statementFilePathField, GroupLayout.DEFAULT_SIZE, 362,
+														.createSequentialGroup()
+														.addComponent(checkBoxOpenFiles).addPreferredGap(
+																ComponentPlacement.RELATED, 101, Short.MAX_VALUE)
+														.addComponent(btnCalculate))
+												.addGroup(groupLayout
+														.createSequentialGroup()
+														.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+																.addComponent(statementFilePathField,
+																		GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
+																.addComponent(warehouseFilePathField,
+																		GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE))
+														.addPreferredGap(ComponentPlacement.RELATED).addGroup(
+																groupLayout.createParallelGroup(Alignment.LEADING)
+																		.addComponent(btnSelectWarehouseFile)
+																		.addComponent(btnSelectStatementFile)))
+												.addComponent(
+														checkBoxDoNotChangeWarehouse)
+												.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 457,
 														Short.MAX_VALUE)
-												.addComponent(warehouseFilePathField, GroupLayout.DEFAULT_SIZE, 362,
-														Short.MAX_VALUE))
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-														.addComponent(btnSelectWarehouseFile)
-														.addComponent(btnSelectStatementFile)))
-										.addComponent(checkBoxDoNotChangeWarehouse)
-										.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 457, Short.MAX_VALUE)
-										.addGroup(groupLayout.createSequentialGroup().addGroup(groupLayout
-												.createParallelGroup(Alignment.TRAILING, false)
-												.addComponent(spinnerMaxGoodsQuantity, Alignment.LEADING)
-												.addComponent(spinnerMoneyFrom, Alignment.LEADING, 0, 0,
-														Short.MAX_VALUE)
-												.addComponent(spinnerYear, Alignment.LEADING,
-														GroupLayout.PREFERRED_SIZE, 54, Short.MAX_VALUE))
-												.addPreferredGap(ComponentPlacement.RELATED).addComponent(label_4)
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-														.addComponent(spinnerMoneyTo, GroupLayout.PREFERRED_SIZE, 54,
-																GroupLayout.PREFERRED_SIZE)
-														.addGroup(groupLayout.createSequentialGroup()
-																.addComponent(comboBoxMonth, GroupLayout.PREFERRED_SIZE,
-																		93, GroupLayout.PREFERRED_SIZE)
-																.addPreferredGap(ComponentPlacement.RELATED)
-																.addComponent(radioButtonFirst)
-																.addPreferredGap(ComponentPlacement.RELATED)
-																.addComponent(radioButtonSecond)))
-												.addGap(67))))
-						.addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 674, Short.MAX_VALUE)).addContainerGap()));
+												.addGroup(groupLayout.createSequentialGroup().addGroup(groupLayout
+														.createParallelGroup(Alignment.TRAILING, false)
+														.addComponent(spinnerMaxGoodsQuantity, Alignment.LEADING)
+														.addComponent(spinnerMoneyFrom, Alignment.LEADING, 0, 0,
+																Short.MAX_VALUE)
+														.addComponent(spinnerYear, Alignment.LEADING,
+																GroupLayout.PREFERRED_SIZE, 54, Short.MAX_VALUE))
+														.addPreferredGap(ComponentPlacement.RELATED)
+														.addComponent(label_4)
+														.addPreferredGap(ComponentPlacement.RELATED)
+														.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+																.addComponent(
+																		spinnerMoneyTo, GroupLayout.PREFERRED_SIZE, 54,
+																		GroupLayout.PREFERRED_SIZE)
+																.addGroup(groupLayout.createSequentialGroup()
+																		.addComponent(comboBoxMonth,
+																				GroupLayout.PREFERRED_SIZE, 93,
+																				GroupLayout.PREFERRED_SIZE)
+																		.addPreferredGap(ComponentPlacement.RELATED)
+																		.addComponent(radioButtonFirst)
+																		.addPreferredGap(ComponentPlacement.RELATED)
+																		.addComponent(radioButtonSecond)))
+														.addGap(67))))
+						.addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 674, Short.MAX_VALUE))
+				.addContainerGap()));
 		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(groupLayout
 				.createSequentialGroup().addContainerGap()
 				.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(label)
@@ -344,12 +350,12 @@ public class MainWindow {
 		excludedGoodsListArea.setLineWrap(true);
 		excludedGoodsListArea.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		scrollPane.setViewportView(excludedGoodsListArea);
-		loadExcludedCategories();
+		loadSavedOptions();
 		frame.getContentPane().setLayout(groupLayout);
 
 	}
 
-	private void loadExcludedCategories() {
+	private void loadSavedOptions() {
 		try (BufferedReader br = new BufferedReader(
 				new InputStreamReader(new FileInputStream("excluded.txt"), "UTF-8"))) {
 			StringBuilder sb = new StringBuilder();
@@ -365,13 +371,73 @@ public class MainWindow {
 			log.error(e.getMessage(), e);
 		}
 
+		try {
+			props.loadFromXML(new FileInputStream("calc_options.xml"));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+
+		try {
+			String val = props.getProperty(dayMoneyMinProp);
+			if (val != null)
+				spinnerMoneyFrom.setValue(Integer.parseInt(val));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+
+		try {
+			String val = props.getProperty(dayMoneyMaxProp);
+			if (val != null)
+				spinnerMoneyTo.setValue(Integer.parseInt(val));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+
+		try {
+			String val = props.getProperty(spinnerMaxGoodsQuantityProp);
+			if (val != null)
+				spinnerMaxGoodsQuantity.setValue(Integer.parseInt(val));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+
+		try {
+			String val = props.getProperty(checkBoxOpenFilesProp);
+			if (val != null)
+				checkBoxOpenFiles.setSelected(Boolean.parseBoolean(val));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+
+		try {
+			String val = props.getProperty(checkBoxDoNotChangeWarehouseProp);
+			if (val != null)
+				checkBoxDoNotChangeWarehouse.setSelected(Boolean.parseBoolean(val));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 
-	private void saveExcludedCategories() {
+	private void saveCalculationOptions() {
 		String text = excludedGoodsListArea.getText();
 		try (PrintWriter out = new PrintWriter(new File("excluded.txt"), "UTF-8")) {
 			out.write(text);
 			out.flush();
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+
+		try {
+			Integer dayMoneyMin = (Integer) spinnerMoneyFrom.getValue();
+			Integer dayMoneyMax = (Integer) spinnerMoneyTo.getValue();
+			int quantity = (Integer) spinnerMaxGoodsQuantity.getValue();
+			props.setProperty(dayMoneyMinProp, String.valueOf(dayMoneyMin));
+			props.setProperty(dayMoneyMaxProp, String.valueOf(dayMoneyMax));
+			props.setProperty(spinnerMaxGoodsQuantityProp, String.valueOf(quantity));
+			props.setProperty(checkBoxOpenFilesProp, String.valueOf(checkBoxOpenFiles.isSelected()));
+			props.setProperty(checkBoxDoNotChangeWarehouseProp,
+					String.valueOf(checkBoxDoNotChangeWarehouse.isSelected()));
+			props.storeToXML(new FileOutputStream("calc_options.xml"), "Calc options saved " + new Date());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -504,6 +570,8 @@ public class MainWindow {
 		Calendar calendar = Calendar.getInstance(new Locale("ru"));
 		calendar.setTime(yearValue);
 		calendar.set(Calendar.MONTH, selectedMonth);
+
+		saveCalculationOptions();
 		// log.debug(calendar.getTime());
 		// read warehouse file
 		InputStream myxlsWarehause = null;
@@ -521,7 +589,8 @@ public class MainWindow {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			JOptionPane.showMessageDialog(frame,
-					"Невозможно открыть файл остатков! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!",
+					"Невозможно открыть файл остатков! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!"
+							+ "\nОшибка: " + e.getLocalizedMessage(),
 					"Ошибка", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -552,7 +621,8 @@ public class MainWindow {
 		} catch (Exception e1) {
 			log.error(e1.getMessage(), e1);
 			JOptionPane.showMessageDialog(frame,
-					"Невозможно открыть файл ведомости! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!",
+					"Невозможно открыть файл ведомости! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!"
+							+ "\nОшибка: " + e1.getLocalizedMessage(),
 					"Ошибка", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -601,7 +671,7 @@ public class MainWindow {
 				log.error(e.getMessage(), e);
 				JOptionPane.showMessageDialog(frame,
 						"Невозможно прочитать файл ведомости! Ошибка при чтении списка используемых товаров:\n"
-								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage(),
+								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e),
 						"Ошибка", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -703,7 +773,7 @@ public class MainWindow {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			JOptionPane.showMessageDialog(frame, "Ошибка при сохранении файла ведомости!\n"
-					+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage(), "Ошибка",
+					+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
 					JOptionPane.ERROR_MESSAGE);
 		}
 
@@ -727,7 +797,7 @@ public class MainWindow {
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
 					JOptionPane.showMessageDialog(frame, "Ошибка при сохранении файла остатков!\n"
-							+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage(), "Ошибка",
+							+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
 							JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -739,7 +809,7 @@ public class MainWindow {
 		// fill with data:
 		int goodsQuantity = selectedGoodsIndexed.size();
 		Random r = new Random();
-
+		ArrayList<Integer> notFilledDays = new ArrayList<Integer>();
 		for (int k = 1; k < maxDayToFill; k++) {
 			double totalPrice = 0;
 			int day = k;
@@ -753,8 +823,10 @@ public class MainWindow {
 				continue;
 			}
 			int randomDaySum = dayMoneyMin + (int) (Math.random() * (((dayMoneyMax - 5) - dayMoneyMin) + 1));
-			while (totalPrice < randomDaySum) {
+			int whileCounter = 0;
+			while (totalPrice < randomDaySum && whileCounter < 50000) {
 				int randomGoodsIndex = r.nextInt(goodsQuantity);
+				whileCounter++;
 
 				Goods randomGoods = selectedGoodsIndexed.get(randomGoodsIndex);
 				// log.debug("Random good index: " + randomGoodsIndex);
@@ -782,7 +854,7 @@ public class MainWindow {
 					} catch (Exception e) {
 						log.error(e.getMessage(), e);
 						JOptionPane.showMessageDialog(frame, "Обшибка при работе с файлом ведомости!\n"
-								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage(), "Ошибка",
+								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
 								JOptionPane.ERROR_MESSAGE);
 						return false;
 
@@ -793,8 +865,17 @@ public class MainWindow {
 							+ Goods.round(totalPrice));
 				}
 			}
+			if (whileCounter > 45000) {
+				notFilledDays.add(day);
+
+			}
 			log.debug("Filled day " + day + ". Got price=" + Goods.round(totalPrice) + " needed: " + randomDaySum);
 			log.debug("------------------------------------------------------------");
+		}
+		if (!notFilledDays.isEmpty()) {
+			JOptionPane.showMessageDialog(frame,
+					"Не дотаточно товаров для " + notFilledDays + " дней!\nПроверьте файл ведомости", "Внимание",
+					JOptionPane.WARNING_MESSAGE);
 		}
 		return true;
 	}
@@ -1009,11 +1090,20 @@ public class MainWindow {
 			return goodsList;
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			JOptionPane.showMessageDialog(frame, "Невозможно прочитать Excel файл остатков!\nОшибка: "
-					+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage(), "Ошибка",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane
+					.showMessageDialog(frame,
+							"Невозможно прочитать Excel файл остатков!\nОшибка: " + e.getClass().getSimpleName() + " - "
+									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
+	}
+
+	private static String getStackTrace(Throwable aThrowable) {
+		final Writer result = new StringWriter();
+		final PrintWriter printWriter = new PrintWriter(result);
+		aThrowable.printStackTrace(printWriter);
+		return result.toString();
 	}
 
 	private String getCellValue(Cell cell) throws Exception {
