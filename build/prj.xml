@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor1_1.jar</jar>
-  <outfile>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor1_1.exe</outfile>
+  <jar>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor.jar</jar>
+  <outfile>C:\Users\aleksandr\GitHub\GoodsDistributor\build\GoodsDistributor1_2.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
@@ -25,12 +25,12 @@
     <maxHeapSize>2048</maxHeapSize>
   </jre>
   <versionInfo>
-    <fileVersion>1.1.0.0</fileVersion>
-    <txtFileVersion>v1.1</txtFileVersion>
+    <fileVersion>1.2.0.0</fileVersion>
+    <txtFileVersion>v1.2</txtFileVersion>
     <fileDescription>Товарный калькулятор</fileDescription>
     <copyright>Oleksandr Chekmez</copyright>
-    <productVersion>1.1.0.0</productVersion>
-    <txtProductVersion>v1.1</txtProductVersion>
+    <productVersion>1.2.0.0</productVersion>
+    <txtProductVersion>v1.2</txtProductVersion>
     <productName>Товарный калькулятор</productName>
     <companyName></companyName>
     <internalName>Товарный калькулятор</internalName>

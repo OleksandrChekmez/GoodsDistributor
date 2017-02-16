@@ -7,7 +7,7 @@
     <property name="dir.workspace" value="c:\Users\aleksandr\GitHub\GoodsDistributor\build"/>
     <property name="dir.jarfile" value="${dir.buildfile}"/>
     <target name="create_run_jar">
-        <jar destfile="${dir.jarfile}/GoodsDistributor1_1.jar">
+        <jar destfile="${dir.jarfile}/GoodsDistributor.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="com.aurumsoft.util.MainWindow"/>

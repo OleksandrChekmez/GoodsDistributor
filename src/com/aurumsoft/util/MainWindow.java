@@ -95,6 +95,9 @@ public class MainWindow {
 	private JRadioButton radioButtonSecond;
 	private JProgressBar progressBar;
 	private Properties props = new Properties();
+	
+	// FEFF because this is the Unicode char represented by the UTF-8 byte order mark (EF BB BF).
+    public static final String UTF8_BOM = "\uFEFF";
 
 	private JSpinner spinnerMaxGoodsQuantity;
 
@@ -110,7 +113,7 @@ public class MainWindow {
 			public void run() {
 				try {
 					MainWindow window = new MainWindow();
-					window.frame.setVisible(true);					
+					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -131,7 +134,7 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		frame.setTitle("Товарный калькулятор v1.1");
+		frame.setTitle("Товарный калькулятор v1.2");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 710, 320);
 		frame.setMinimumSize(new Dimension(710, 320));
@@ -196,9 +199,10 @@ public class MainWindow {
 							calculate();
 						} catch (Exception e) {
 							log.error(e.getMessage(), e);
-							JOptionPane.showMessageDialog(frame, "Не предвиденная ошибка:"
-									+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
-									JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(frame,
+									"Не предвиденная ошибка:" + e.getClass().getSimpleName() + " - "
+											+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+									"Ошибка", JOptionPane.ERROR_MESSAGE);
 						}
 						progressBar.setIndeterminate(false);
 						enableControls(true);
@@ -354,6 +358,13 @@ public class MainWindow {
 		frame.getContentPane().setLayout(groupLayout);
 
 	}
+	
+	private static String removeUTF8BOM(String s) {
+        if (s.startsWith(UTF8_BOM)) {
+            s = s.substring(1);
+        }
+        return s;
+    }
 
 	private void loadSavedOptions() {
 		try (BufferedReader br = new BufferedReader(
@@ -362,6 +373,7 @@ public class MainWindow {
 			String line = br.readLine();
 
 			while (line != null) {
+				line=removeUTF8BOM(line);
 				sb.append(line);
 				sb.append(System.lineSeparator());
 				line = br.readLine();
@@ -595,6 +607,9 @@ public class MainWindow {
 			return;
 		}
 		TreeSet<Goods> goodsList = readGoods(excludedGoodsList, goodsWorkBook);
+		if(goodsList==null){
+			return;
+		}
 		for (Goods goods : goodsList) {
 			log.debug(goods.getName() + " quantity: " + goods.getTotalQuantity());
 			TreeSet<GoodsPrice> prices = goods.getPriceList();
@@ -671,7 +686,8 @@ public class MainWindow {
 				log.error(e.getMessage(), e);
 				JOptionPane.showMessageDialog(frame,
 						"Невозможно прочитать файл ведомости! Ошибка при чтении списка используемых товаров:\n"
-								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e),
+								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n"
+								+ getStackTrace(e),
 						"Ошибка", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -772,9 +788,11 @@ public class MainWindow {
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			JOptionPane.showMessageDialog(frame, "Ошибка при сохранении файла ведомости!\n"
-					+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane
+					.showMessageDialog(frame,
+							"Ошибка при сохранении файла ведомости!\n" + e.getClass().getSimpleName() + " - "
+									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
 		}
 
 		if (!checkBoxDoNotChangeWarehouse.isSelected()) {
@@ -796,9 +814,10 @@ public class MainWindow {
 					fileOut.close();
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
-					JOptionPane.showMessageDialog(frame, "Ошибка при сохранении файла остатков!\n"
-							+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
-							JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(frame,
+							"Ошибка при сохранении файла остатков!\n" + e.getClass().getSimpleName() + " - "
+									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		}
@@ -853,9 +872,10 @@ public class MainWindow {
 								+ new CellReference(c).formatAsString());
 					} catch (Exception e) {
 						log.error(e.getMessage(), e);
-						JOptionPane.showMessageDialog(frame, "Обшибка при работе с файлом ведомости!\n"
-								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e), "Ошибка",
-								JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(frame,
+								"Обшибка при работе с файлом ведомости!\n" + e.getClass().getSimpleName() + " - "
+										+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+								"Ошибка", JOptionPane.ERROR_MESSAGE);
 						return false;
 
 					}
@@ -1008,16 +1028,27 @@ public class MainWindow {
 					}
 				} else {
 					// read goods:
-					Cell cell = row.getCell(0);
+					Cell cell = row.getCell(0);					
 					String name = getCellValue(cell);
+					String cellName="";
 					if (name != null && name.trim().length() > 0) {
 						if (!excludedGoodsList.contains(name)) {
 							cell = row.getCell(3);
+							if(cell!=null){
+								cellName=" (ячейка "+new CellReference(cell).formatAsString()+")";
+							}else{
+								cellName="";
+							}
 							String quantityStr = getCellValue(cell);
 							if (quantityStr != null && quantityStr.trim().length() > 0) {
 								try {
 									Double quantity = Double.parseDouble(quantityStr);
 									Cell cell2 = row.getCell(4);
+									if(cell2!=null){
+										cellName=" (ячейка "+new CellReference(cell2).formatAsString()+")";
+									}else{
+										cellName="";
+									}
 									String priceStr = getCellValue(cell2);
 									if (priceStr != null && priceStr.trim().length() > 0) {
 										try {
@@ -1040,30 +1071,30 @@ public class MainWindow {
 										} catch (NumberFormatException e) {
 											log.error(e.getMessage(), e);
 											JOptionPane.showMessageDialog(frame,
-													"Невозможно прочитать Excel файл остатков!\nЦена товара в ячейке "
-															+ new CellReference(cell).formatAsString() + " не цифра!",
+													"Ошибка чтения файла остатков!\nЦена товара \""+name+"\" не цифра:"+priceStr+
+															"\nСтрока "+(row.getRowNum()+1)+cellName,
 													"Ошибка", JOptionPane.ERROR_MESSAGE);
 											return null;
 										}
 									} else {
 										JOptionPane.showMessageDialog(frame,
-												"Невозможно прочитать Excel файл остатков!\nЦена товара в ячейке "
-														+ new CellReference(cell).formatAsString() + " не задана!",
+												"Ошибка чтения файла остатков!\nЦена товара \""+name+"\" не задано!"+
+														"\nСтрока "+(row.getRowNum()+1)+cellName,
 												"Ошибка", JOptionPane.ERROR_MESSAGE);
 										return null;
 									}
 								} catch (NumberFormatException e) {
 									log.error(e.getMessage(), e);
 									JOptionPane.showMessageDialog(frame,
-											"Невозможно прочитать Excel файл остатков!\nКоличество товара в ячейке "
-													+ new CellReference(cell).formatAsString() + " не цифра!",
+											"Ошибка чтения файла остатков!\nКоличество товара \""+name+"\" не цифра:"+quantityStr+
+											"\nСтрока "+(row.getRowNum()+1)+cellName,
 											"Ошибка", JOptionPane.ERROR_MESSAGE);
 									return null;
 								}
 							} else {
 								JOptionPane.showMessageDialog(frame,
-										"Невозможно прочитать Excel файл остатков!\nКоличество товара в ячейке "
-												+ new CellReference(cell).formatAsString() + " не задано!",
+										"Ошибка чтения файла остатков!\nКоличество товара \""+name+"\" не задано!"+
+												"\nСтрока "+(row.getRowNum()+1)+cellName,
 										"Ошибка", JOptionPane.ERROR_MESSAGE);
 								return null;
 							}
