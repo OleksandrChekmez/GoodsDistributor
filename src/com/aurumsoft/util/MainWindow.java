@@ -95,9 +95,10 @@ public class MainWindow {
 	private JRadioButton radioButtonSecond;
 	private JProgressBar progressBar;
 	private Properties props = new Properties();
-	
-	// FEFF because this is the Unicode char represented by the UTF-8 byte order mark (EF BB BF).
-    public static final String UTF8_BOM = "\uFEFF";
+
+	// FEFF because this is the Unicode char represented by the UTF-8 byte order
+	// mark (EF BB BF).
+	public static final String UTF8_BOM = "\uFEFF";
 
 	private JSpinner spinnerMaxGoodsQuantity;
 
@@ -358,13 +359,13 @@ public class MainWindow {
 		frame.getContentPane().setLayout(groupLayout);
 
 	}
-	
+
 	private static String removeUTF8BOM(String s) {
-        if (s.startsWith(UTF8_BOM)) {
-            s = s.substring(1);
-        }
-        return s;
-    }
+		if (s.startsWith(UTF8_BOM)) {
+			s = s.substring(1);
+		}
+		return s;
+	}
 
 	private void loadSavedOptions() {
 		try (BufferedReader br = new BufferedReader(
@@ -373,7 +374,7 @@ public class MainWindow {
 			String line = br.readLine();
 
 			while (line != null) {
-				line=removeUTF8BOM(line);
+				line = removeUTF8BOM(line);
 				sb.append(line);
 				sb.append(System.lineSeparator());
 				line = br.readLine();
@@ -607,7 +608,7 @@ public class MainWindow {
 			return;
 		}
 		TreeSet<Goods> goodsList = readGoods(excludedGoodsList, goodsWorkBook);
-		if(goodsList==null){
+		if (goodsList == null) {
 			return;
 		}
 		for (Goods goods : goodsList) {
@@ -990,13 +991,16 @@ public class MainWindow {
 			// clear goods name
 			Row row = sheetTotal.getRow(j);
 			Cell c = row.getCell(0);
-			c.setCellType(Cell.CELL_TYPE_BLANK);
+			if (c != null)
+				c.setCellType(Cell.CELL_TYPE_BLANK);
 			// clear sell price
 			c = row.getCell(1);
-			c.setCellType(Cell.CELL_TYPE_BLANK);
+			if (c != null)
+				c.setCellType(Cell.CELL_TYPE_BLANK);
 			// clear buy price
 			c = row.getCell(6);
-			c.setCellType(Cell.CELL_TYPE_BLANK);
+			if (c != null)
+				c.setCellType(Cell.CELL_TYPE_BLANK);
 
 		}
 	}
@@ -1006,7 +1010,8 @@ public class MainWindow {
 			for (int j = 4; j < totalStatementRow; j++) {
 				Row row = sheet.getRow(j);
 				Cell c = row.getCell(getColumnIndexByMonthDay(i));
-				c.setCellType(Cell.CELL_TYPE_BLANK);
+				if (c != null)
+					c.setCellType(Cell.CELL_TYPE_BLANK);
 			}
 		}
 	}
@@ -1028,26 +1033,26 @@ public class MainWindow {
 					}
 				} else {
 					// read goods:
-					Cell cell = row.getCell(0);					
+					Cell cell = row.getCell(0);
 					String name = getCellValue(cell);
-					String cellName="";
+					String cellName = "";
 					if (name != null && name.trim().length() > 0) {
 						if (!excludedGoodsList.contains(name)) {
 							cell = row.getCell(3);
-							if(cell!=null){
-								cellName=" (ячейка "+new CellReference(cell).formatAsString()+")";
-							}else{
-								cellName="";
+							if (cell != null) {
+								cellName = " (ячейка " + new CellReference(cell).formatAsString() + ")";
+							} else {
+								cellName = "";
 							}
 							String quantityStr = getCellValue(cell);
 							if (quantityStr != null && quantityStr.trim().length() > 0) {
 								try {
 									Double quantity = Double.parseDouble(quantityStr);
 									Cell cell2 = row.getCell(4);
-									if(cell2!=null){
-										cellName=" (ячейка "+new CellReference(cell2).formatAsString()+")";
-									}else{
-										cellName="";
+									if (cell2 != null) {
+										cellName = " (ячейка " + new CellReference(cell2).formatAsString() + ")";
+									} else {
+										cellName = "";
 									}
 									String priceStr = getCellValue(cell2);
 									if (priceStr != null && priceStr.trim().length() > 0) {
@@ -1071,30 +1076,32 @@ public class MainWindow {
 										} catch (NumberFormatException e) {
 											log.error(e.getMessage(), e);
 											JOptionPane.showMessageDialog(frame,
-													"Ошибка чтения файла остатков!\nЦена товара \""+name+"\" не цифра:"+priceStr+
-															"\nСтрока "+(row.getRowNum()+1)+cellName,
+													"Ошибка чтения файла остатков!\nЦена товара \"" + name
+															+ "\" не цифра:" + priceStr + "\nСтрока "
+															+ (row.getRowNum() + 1) + cellName,
 													"Ошибка", JOptionPane.ERROR_MESSAGE);
 											return null;
 										}
 									} else {
 										JOptionPane.showMessageDialog(frame,
-												"Ошибка чтения файла остатков!\nЦена товара \""+name+"\" не задано!"+
-														"\nСтрока "+(row.getRowNum()+1)+cellName,
+												"Ошибка чтения файла остатков!\nЦена товара \"" + name + "\" не задано!"
+														+ "\nСтрока " + (row.getRowNum() + 1) + cellName,
 												"Ошибка", JOptionPane.ERROR_MESSAGE);
 										return null;
 									}
 								} catch (NumberFormatException e) {
 									log.error(e.getMessage(), e);
 									JOptionPane.showMessageDialog(frame,
-											"Ошибка чтения файла остатков!\nКоличество товара \""+name+"\" не цифра:"+quantityStr+
-											"\nСтрока "+(row.getRowNum()+1)+cellName,
+											"Ошибка чтения файла остатков!\nКоличество товара \"" + name
+													+ "\" не цифра:" + quantityStr + "\nСтрока " + (row.getRowNum() + 1)
+													+ cellName,
 											"Ошибка", JOptionPane.ERROR_MESSAGE);
 									return null;
 								}
 							} else {
 								JOptionPane.showMessageDialog(frame,
-										"Ошибка чтения файла остатков!\nКоличество товара \""+name+"\" не задано!"+
-												"\nСтрока "+(row.getRowNum()+1)+cellName,
+										"Ошибка чтения файла остатков!\nКоличество товара \"" + name + "\" не задано!"
+												+ "\nСтрока " + (row.getRowNum() + 1) + cellName,
 										"Ошибка", JOptionPane.ERROR_MESSAGE);
 								return null;
 							}
