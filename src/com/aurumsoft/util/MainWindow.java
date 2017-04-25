@@ -112,7 +112,8 @@ public class MainWindow {
 		}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				try {
+				try {					
+					Locale.setDefault(Locale.forLanguageTag("ru"));
 					MainWindow window = new MainWindow();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
@@ -199,7 +200,7 @@ public class MainWindow {
 						try {
 							calculate();
 						} catch (Exception e) {
-							log.error(e.getMessage(), e);
+							log.error(e.getLocalizedMessage(), e);
 							JOptionPane.showMessageDialog(frame,
 									"Не предвиденная ошибка:" + e.getClass().getSimpleName() + " - "
 											+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
@@ -381,13 +382,13 @@ public class MainWindow {
 			}
 			excludedGoodsListArea.setText(sb.toString());
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
 			props.loadFromXML(new FileInputStream("calc_options.xml"));
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
@@ -395,7 +396,7 @@ public class MainWindow {
 			if (val != null)
 				spinnerMoneyFrom.setValue(Integer.parseInt(val));
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
@@ -403,7 +404,7 @@ public class MainWindow {
 			if (val != null)
 				spinnerMoneyTo.setValue(Integer.parseInt(val));
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
@@ -411,7 +412,7 @@ public class MainWindow {
 			if (val != null)
 				spinnerMaxGoodsQuantity.setValue(Integer.parseInt(val));
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
@@ -419,7 +420,7 @@ public class MainWindow {
 			if (val != null)
 				checkBoxOpenFiles.setSelected(Boolean.parseBoolean(val));
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
@@ -427,7 +428,7 @@ public class MainWindow {
 			if (val != null)
 				checkBoxDoNotChangeWarehouse.setSelected(Boolean.parseBoolean(val));
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -437,7 +438,7 @@ public class MainWindow {
 			out.write(text);
 			out.flush();
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		try {
@@ -452,7 +453,7 @@ public class MainWindow {
 					String.valueOf(checkBoxDoNotChangeWarehouse.isSelected()));
 			props.storeToXML(new FileOutputStream("calc_options.xml"), "Calc options saved " + new Date());
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -512,7 +513,7 @@ public class MainWindow {
 			try {
 				iconImage = ImageIO.read(MainWindow.class.getResource(iconName));
 			} catch (IOException e) {
-				log.error(e.getMessage(), e);
+				log.error(e.getLocalizedMessage(), e);
 				e.printStackTrace();
 			}
 		}
@@ -591,7 +592,7 @@ public class MainWindow {
 		try {
 			myxlsWarehause = new FileInputStream(warehouseFile);
 		} catch (FileNotFoundException e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 			JOptionPane.showMessageDialog(frame, "Файл не найден: " + warehouseFile.getAbsolutePath(), "Ошибка",
 					JOptionPane.ERROR_MESSAGE);
 			return;
@@ -600,7 +601,7 @@ public class MainWindow {
 		try {
 			goodsWorkBook = WorkbookFactory.create(myxlsWarehause);
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 			JOptionPane.showMessageDialog(frame,
 					"Невозможно открыть файл остатков! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!"
 							+ "\nОшибка: " + e.getLocalizedMessage(),
@@ -626,7 +627,7 @@ public class MainWindow {
 		try {
 			myxlsStatements = new FileInputStream(statementsFile);
 		} catch (FileNotFoundException e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 			JOptionPane.showMessageDialog(frame, "Файл не найден: " + warehouseFile.getAbsolutePath(), "Ошибка",
 					JOptionPane.ERROR_MESSAGE);
 			return;
@@ -635,7 +636,7 @@ public class MainWindow {
 		try {
 			statementsWorkBook = WorkbookFactory.create(myxlsStatements);
 		} catch (Exception e1) {
-			log.error(e1.getMessage(), e1);
+			log.error(e1.getLocalizedMessage(), e1);
 			JOptionPane.showMessageDialog(frame,
 					"Невозможно открыть файл ведомости! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!"
 							+ "\nОшибка: " + e1.getLocalizedMessage(),
@@ -684,7 +685,7 @@ public class MainWindow {
 			try {
 				selectedGoods = getGoodsForSecondMonthPart(goodsList, sheetTotal);
 			} catch (Exception e) {
-				log.error(e.getMessage(), e);
+				log.error(e.getLocalizedMessage(), e);
 				JOptionPane.showMessageDialog(frame,
 						"Невозможно прочитать файл ведомости! Ошибка при чтении списка используемых товаров:\n"
 								+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n"
@@ -743,10 +744,23 @@ public class MainWindow {
 		}
 		// hide rows with no goods:
 		if (radioButtonFirst.isSelected()) {
-			for (int j = 4; j < totalStatementRow; j++) {
+			for (int j = 4; j < sheet1.getLastRowNum(); j++) {
 				Row row = sheetTotal.getRow(j);
 				Row row1 = sheet1.getRow(j);
 				Row row2 = sheet2.getRow(j);
+				Cell c = row1.getCell(0);
+				try {
+					if (c != null) {
+						String val = getCellValue(c);
+						if (val != null) {
+							if (val.equalsIgnoreCase("Итого")) {
+								break;
+							}
+						}
+					}
+				} catch (Exception e) {
+					log.error("Error hidding rows: " + e.getLocalizedMessage(), e);
+				}
 				if (j - 4 < selectedGoods.size()) {
 					row.setZeroHeight(false);
 					row1.setZeroHeight(false);
@@ -788,7 +802,7 @@ public class MainWindow {
 			}
 
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 			JOptionPane
 					.showMessageDialog(frame,
 							"Ошибка при сохранении файла ведомости!\n" + e.getClass().getSimpleName() + " - "
@@ -814,7 +828,7 @@ public class MainWindow {
 					goodsWorkBook.write(fileOut);
 					fileOut.close();
 				} catch (Exception e) {
-					log.error(e.getMessage(), e);
+					log.error(e.getLocalizedMessage(), e);
 					JOptionPane.showMessageDialog(frame,
 							"Ошибка при сохранении файла остатков!\n" + e.getClass().getSimpleName() + " - "
 									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
@@ -872,7 +886,7 @@ public class MainWindow {
 								+ " totalPrice=" + Goods.round(totalPrice) + " cell="
 								+ new CellReference(c).formatAsString());
 					} catch (Exception e) {
-						log.error(e.getMessage(), e);
+						log.error(e.getLocalizedMessage(), e);
 						JOptionPane.showMessageDialog(frame,
 								"Обшибка при работе с файлом ведомости!\n" + e.getClass().getSimpleName() + " - "
 										+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
@@ -1074,7 +1088,7 @@ public class MainWindow {
 												goodsList.add(g);
 											}
 										} catch (NumberFormatException e) {
-											log.error(e.getMessage(), e);
+											log.error(e.getLocalizedMessage(), e);
 											JOptionPane.showMessageDialog(frame,
 													"Ошибка чтения файла остатков!\nЦена товара \"" + name
 															+ "\" не цифра:" + priceStr + "\nСтрока "
@@ -1090,7 +1104,7 @@ public class MainWindow {
 										return null;
 									}
 								} catch (NumberFormatException e) {
-									log.error(e.getMessage(), e);
+									log.error(e.getLocalizedMessage(), e);
 									JOptionPane.showMessageDialog(frame,
 											"Ошибка чтения файла остатков!\nКоличество товара \"" + name
 													+ "\" не цифра:" + quantityStr + "\nСтрока " + (row.getRowNum() + 1)
@@ -1127,7 +1141,7 @@ public class MainWindow {
 			}
 			return goodsList;
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.error(e.getLocalizedMessage(), e);
 			JOptionPane
 					.showMessageDialog(frame,
 							"Невозможно прочитать Excel файл остатков!\nОшибка: " + e.getClass().getSimpleName() + " - "
