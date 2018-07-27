@@ -93,6 +93,7 @@ public class MainWindow {
 	private JComboBox<String> comboBoxMonth;
 	private JRadioButton radioButtonFirst;
 	private JRadioButton radioButtonSecond;
+	private JRadioButton radioButtonFull;
 	private JProgressBar progressBar;
 	private Properties props = new Properties();
 
@@ -112,7 +113,7 @@ public class MainWindow {
 		}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				try {					
+				try {
 					Locale.setDefault(Locale.forLanguageTag("ru"));
 					MainWindow window = new MainWindow();
 					window.frame.setVisible(true);
@@ -138,8 +139,8 @@ public class MainWindow {
 
 		frame.setTitle("Товарный калькулятор v1.2");
 		frame.setIconImage(getIcon());
-		frame.setBounds(100, 100, 710, 320);
-		frame.setMinimumSize(new Dimension(710, 320));
+		frame.setBounds(100, 100, 790, 320);
+		frame.setMinimumSize(new Dimension(790, 320));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JLabel label = new JLabel("Остатки:");
@@ -198,7 +199,15 @@ public class MainWindow {
 						enableControls(false);
 						progressBar.setIndeterminate(true);
 						try {
-							calculate();
+							boolean isOpenExcel = checkBoxOpenFiles.isSelected();
+							if (radioButtonFirst.isSelected()) {
+								calculate(true, isOpenExcel);
+							}else if(radioButtonSecond.isSelected()) {
+								calculate(false, isOpenExcel);
+							}else {
+								calculate(true, false);
+								calculate(false, isOpenExcel);
+							}
 						} catch (Exception e) {
 							log.error(e.getLocalizedMessage(), e);
 							JOptionPane.showMessageDialog(frame,
@@ -234,8 +243,10 @@ public class MainWindow {
 		ButtonGroup bg = new ButtonGroup();
 		radioButtonFirst = new JRadioButton("первая половина");
 		radioButtonSecond = new JRadioButton("вторая половина");
+		radioButtonFull = new JRadioButton("весь месяц");
 		bg.add(radioButtonFirst);
 		bg.add(radioButtonSecond);
+		bg.add(radioButtonFull);
 
 		cal = Calendar.getInstance(new Locale("ru"));
 		int currentMonth = cal.get(Calendar.MONTH);
@@ -256,60 +267,82 @@ public class MainWindow {
 		JLabel label_3 = new JLabel("Максимальное количество товара:");
 
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
-		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addGroup(groupLayout
-				.createSequentialGroup().addContainerGap()
-				.addGroup(groupLayout
-						.createParallelGroup(Alignment.TRAILING).addGroup(groupLayout.createSequentialGroup()
-								.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addComponent(label_3)
-										.addComponent(label_2).addComponent(label_1)
-										.addComponent(label).addComponent(label_5).addComponent(label_6))
-								.addPreferredGap(ComponentPlacement.RELATED).addGroup(
-										groupLayout.createParallelGroup(Alignment.LEADING)
-												.addGroup(groupLayout
-														.createSequentialGroup()
-														.addComponent(checkBoxOpenFiles).addPreferredGap(
-																ComponentPlacement.RELATED, 101, Short.MAX_VALUE)
-														.addComponent(btnCalculate))
-												.addGroup(groupLayout
-														.createSequentialGroup()
-														.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-																.addComponent(statementFilePathField,
-																		GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
-																.addComponent(warehouseFilePathField,
-																		GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE))
-														.addPreferredGap(ComponentPlacement.RELATED).addGroup(
-																groupLayout.createParallelGroup(Alignment.LEADING)
-																		.addComponent(btnSelectWarehouseFile)
-																		.addComponent(btnSelectStatementFile)))
-												.addComponent(
-														checkBoxDoNotChangeWarehouse)
-												.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 457,
-														Short.MAX_VALUE)
-												.addGroup(groupLayout.createSequentialGroup().addGroup(groupLayout
-														.createParallelGroup(Alignment.TRAILING, false)
-														.addComponent(spinnerMaxGoodsQuantity, Alignment.LEADING)
-														.addComponent(spinnerMoneyFrom, Alignment.LEADING, 0, 0,
-																Short.MAX_VALUE)
-														.addComponent(spinnerYear, Alignment.LEADING,
-																GroupLayout.PREFERRED_SIZE, 54, Short.MAX_VALUE))
-														.addPreferredGap(ComponentPlacement.RELATED)
-														.addComponent(label_4)
-														.addPreferredGap(ComponentPlacement.RELATED)
-														.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-																.addComponent(
-																		spinnerMoneyTo, GroupLayout.PREFERRED_SIZE, 54,
-																		GroupLayout.PREFERRED_SIZE)
+		groupLayout
+				.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+						.addGroup(groupLayout.createSequentialGroup().addContainerGap()
+								.addGroup(groupLayout
+										.createParallelGroup(Alignment.TRAILING).addGroup(groupLayout
+												.createSequentialGroup().addGroup(
+														groupLayout.createParallelGroup(Alignment.TRAILING)
+																.addComponent(label_3).addComponent(label_2)
+																.addComponent(label_1).addComponent(label).addComponent(
+																		label_5)
+																.addComponent(label_6))
+												.addPreferredGap(ComponentPlacement.RELATED).addGroup(
+														groupLayout.createParallelGroup(Alignment.LEADING)
 																.addGroup(groupLayout.createSequentialGroup()
-																		.addComponent(comboBoxMonth,
-																				GroupLayout.PREFERRED_SIZE, 93,
-																				GroupLayout.PREFERRED_SIZE)
+																		.addComponent(checkBoxOpenFiles)
+																		.addPreferredGap(ComponentPlacement.RELATED,
+																				101, Short.MAX_VALUE)
+																		.addComponent(btnCalculate))
+																.addGroup(groupLayout
+																		.createSequentialGroup().addGroup(groupLayout
+																				.createParallelGroup(Alignment.LEADING)
+																				.addComponent(statementFilePathField,
+																						GroupLayout.DEFAULT_SIZE, 362,
+																						Short.MAX_VALUE)
+																				.addComponent(warehouseFilePathField,
+																						GroupLayout.DEFAULT_SIZE, 362,
+																						Short.MAX_VALUE))
 																		.addPreferredGap(ComponentPlacement.RELATED)
-																		.addComponent(radioButtonFirst)
+																		.addGroup(groupLayout.createParallelGroup(
+																				Alignment.LEADING).addComponent(
+																						btnSelectWarehouseFile)
+																				.addComponent(btnSelectStatementFile)))
+																.addComponent(checkBoxDoNotChangeWarehouse)
+																.addComponent(
+																		scrollPane, GroupLayout.DEFAULT_SIZE, 457,
+																		Short.MAX_VALUE)
+																.addGroup(groupLayout.createSequentialGroup()
+																		.addGroup(groupLayout
+																				.createParallelGroup(Alignment.TRAILING,
+																						false)
+																				.addComponent(spinnerMaxGoodsQuantity,
+																						Alignment.LEADING)
+																				.addComponent(spinnerMoneyFrom,
+																						Alignment.LEADING, 0, 0,
+																						Short.MAX_VALUE)
+																				.addComponent(
+																						spinnerYear, Alignment.LEADING,
+																						GroupLayout.PREFERRED_SIZE, 54,
+																						Short.MAX_VALUE))
 																		.addPreferredGap(ComponentPlacement.RELATED)
-																		.addComponent(radioButtonSecond)))
-														.addGap(67))))
-						.addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 674, Short.MAX_VALUE))
-				.addContainerGap()));
+																		.addComponent(label_4)
+																		.addPreferredGap(ComponentPlacement.RELATED)
+																		.addGroup(groupLayout
+																				.createParallelGroup(Alignment.LEADING)
+																				.addComponent(spinnerMoneyTo,
+																						GroupLayout.PREFERRED_SIZE, 54,
+																						GroupLayout.PREFERRED_SIZE)
+																				.addGroup(groupLayout
+																						.createSequentialGroup()
+																						.addComponent(comboBoxMonth,
+																								GroupLayout.PREFERRED_SIZE,
+																								93,
+																								GroupLayout.PREFERRED_SIZE)
+																						.addPreferredGap(
+																								ComponentPlacement.RELATED)
+																						.addComponent(radioButtonFirst)
+																						.addPreferredGap(
+																								ComponentPlacement.RELATED)
+																						.addComponent(radioButtonSecond)
+																						.addPreferredGap(
+																								ComponentPlacement.RELATED)
+																						.addComponent(radioButtonFull)))
+
+																		.addGap(67))))
+										.addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 674, Short.MAX_VALUE))
+								.addContainerGap()));
 		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(groupLayout
 				.createSequentialGroup().addContainerGap()
 				.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(label)
@@ -327,7 +360,7 @@ public class MainWindow {
 								GroupLayout.PREFERRED_SIZE)
 						.addComponent(comboBoxMonth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 								GroupLayout.PREFERRED_SIZE)
-						.addComponent(radioButtonFirst).addComponent(radioButtonSecond))
+						.addComponent(radioButtonFirst).addComponent(radioButtonSecond).addComponent(radioButtonFull))
 				.addPreferredGap(ComponentPlacement.RELATED)
 				.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(spinnerMoneyFrom, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
@@ -465,6 +498,7 @@ public class MainWindow {
 		spinnerMoneyFrom.setEnabled(enable);
 		comboBoxMonth.setEnabled(enable);
 		radioButtonFirst.setEnabled(enable);
+		radioButtonFull.setEnabled(enable);
 		radioButtonSecond.setEnabled(enable);
 		spinnerYear.setEnabled(enable);
 		checkBoxOpenFiles.setEnabled(enable);
@@ -548,7 +582,7 @@ public class MainWindow {
 		return file;
 	}
 
-	private void calculate() {
+	private void calculate(boolean isFirstPart, boolean isOpenExcel) {
 		// validate input
 
 		// validate selected folders:
@@ -648,7 +682,7 @@ public class MainWindow {
 		Sheet sheet2 = statementsWorkBook.getSheetAt(1);
 		Sheet sheetTotal = statementsWorkBook.getSheetAt(2);
 		TreeSet<Goods> selectedGoods = null;
-		if (radioButtonFirst.isSelected()) {
+		if (isFirstPart) {
 			// clean quantity for calculated dates:
 			clearSheetValues(sheet1);
 			clearSheetValues(sheet2);
@@ -743,7 +777,7 @@ public class MainWindow {
 			}
 		}
 		// hide rows with no goods:
-		if (radioButtonFirst.isSelected()) {
+		if (isFirstPart) {
 			for (int j = 4; j < sheet1.getLastRowNum(); j++) {
 				Row row = sheetTotal.getRow(j);
 				Row row1 = sheet1.getRow(j);
@@ -787,7 +821,7 @@ public class MainWindow {
 			FileOutputStream fileOut = new FileOutputStream(statementsFile);
 			statementsWorkBook.write(fileOut);
 			fileOut.close();
-			if (checkBoxOpenFiles.isSelected()) {
+			if (isOpenExcel) {
 				try {
 					Desktop desktop = null;
 					if (Desktop.isDesktopSupported()) {

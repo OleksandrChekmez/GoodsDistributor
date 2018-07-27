@@ -4,7 +4,7 @@
     <!--ANT 1.7 is required-->
     <!--define folder properties-->
     <property name="dir.buildfile" value="."/>
-    <property name="dir.workspace" value="c:\Users\aleksandr\GitHub\GoodsDistributor\build"/>
+    <property name="dir.workspace" value="c:\Users\chekm\git\GoodsDistributor\build"/>
     <property name="dir.jarfile" value="${dir.buildfile}"/>
     <target name="create_run_jar">
         <jar destfile="${dir.jarfile}/GoodsDistributor.jar">
@@ -12,20 +12,20 @@
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="com.aurumsoft.util.MainWindow"/>
                 <attribute name="Class-Path" value="."/>
-                <attribute name="Rsrc-Class-Path" value="./ poi-3.7.jar poi-ooxml-3.7.jar dom4j-1.6.1.jar xml-apis-1.0.b2.jar poi-ooxml-schemas-3.7.jar xmlbeans-2.3.0.jar stax-api-1.0.1.jar geronimo-stax-api_1.0_spec-1.0.jar log4j-1.2.16.jar commons-logging-1.1.1.jar"/>
+                <attribute name="Rsrc-Class-Path" value="./ poi-3.17.jar poi-ooxml-3.17.jar dom4j-1.6.1.jar xml-apis-1.0.b2.jar poi-ooxml-schemas-3.17.jar xmlbeans-2.3.0.jar stax-api-1.0.1.jar geronimo-stax-api_1.0_spec-1.0.jar log4j-1.2.16.jar commons-logging-1.1.1.jar"/>
             </manifest>
             <zipfileset src="jar-in-jar-loader.zip"/>
-            <fileset dir="C:/Users/aleksandr/GitHub/GoodsDistributor/target/classes"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/org/apache/poi/poi/3.7" includes="poi-3.7.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/org/apache/poi/poi-ooxml/3.7" includes="poi-ooxml-3.7.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/dom4j/dom4j/1.6.1" includes="dom4j-1.6.1.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/xml-apis/xml-apis/1.0.b2" includes="xml-apis-1.0.b2.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/org/apache/poi/poi-ooxml-schemas/3.7" includes="poi-ooxml-schemas-3.7.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/org/apache/xmlbeans/xmlbeans/2.3.0" includes="xmlbeans-2.3.0.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/stax/stax-api/1.0.1" includes="stax-api-1.0.1.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0" includes="geronimo-stax-api_1.0_spec-1.0.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/log4j/log4j/1.2.16" includes="log4j-1.2.16.jar"/>
-            <zipfileset dir="C:/Users/aleksandr/.m2/repository/commons-logging/commons-logging/1.1.1" includes="commons-logging-1.1.1.jar"/>
+            <fileset dir="c:/Users/chekm/git/GoodsDistributor/target/classes"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/org/apache/poi/poi/3.17" includes="poi-3.17.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/org/apache/poi/poi-ooxml/3.17" includes="poi-ooxml-3.17.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/dom4j/dom4j/1.6.1" includes="dom4j-1.6.1.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/xml-apis/xml-apis/1.0.b2" includes="xml-apis-1.0.b2.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/org/apache/poi/poi-ooxml-schemas/3.17" includes="poi-ooxml-schemas-3.17.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/org/apache/xmlbeans/xmlbeans/2.3.0" includes="xmlbeans-2.3.0.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/stax/stax-api/1.0.1" includes="stax-api-1.0.1.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0" includes="geronimo-stax-api_1.0_spec-1.0.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/log4j/log4j/1.2.16" includes="log4j-1.2.16.jar"/>
+            <zipfileset dir="C:/Users/chekm/.m2/repository/commons-logging/commons-logging/1.1.1" includes="commons-logging-1.1.1.jar"/>
         </jar>
     </target>
 </project>
