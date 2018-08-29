@@ -137,7 +137,7 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		frame.setTitle("Товарный калькулятор v1.2");
+		frame.setTitle("Товарный калькулятор v1.4");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 790, 320);
 		frame.setMinimumSize(new Dimension(790, 320));
@@ -202,9 +202,9 @@ public class MainWindow {
 							boolean isOpenExcel = checkBoxOpenFiles.isSelected();
 							if (radioButtonFirst.isSelected()) {
 								calculate(true, isOpenExcel);
-							}else if(radioButtonSecond.isSelected()) {
+							} else if (radioButtonSecond.isSelected()) {
 								calculate(false, isOpenExcel);
-							}else {
+							} else {
 								calculate(true, false);
 								calculate(false, isOpenExcel);
 							}
@@ -637,8 +637,9 @@ public class MainWindow {
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
 			JOptionPane.showMessageDialog(frame,
-					"Невозможно открыть файл остатков! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!"
-							+ "\nОшибка: " + e.getLocalizedMessage(),
+					"Невозможно открыть файл остатков - " + warehouseFile
+							+ "\\nВозможно он поврежден.\nОткройте его в MS Excel и пересохраните!" + "\nОшибка: "
+							+ e.getLocalizedMessage(),
 					"Ошибка", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -672,8 +673,9 @@ public class MainWindow {
 		} catch (Exception e1) {
 			log.error(e1.getLocalizedMessage(), e1);
 			JOptionPane.showMessageDialog(frame,
-					"Невозможно открыть файл ведомости! Возможно он поврежден.\nОткройте его в MS Excel и пересохраните!"
-							+ "\nОшибка: " + e1.getLocalizedMessage(),
+					"Невозможно открыть файл ведомости - " + statementsFile
+							+ "\nВозможно он поврежден.\nОткройте его в MS Excel и пересохраните!" + "\nОшибка: "
+							+ e1.getLocalizedMessage(),
 					"Ошибка", JOptionPane.ERROR_MESSAGE);
 			return;
 		}

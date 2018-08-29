@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Calc options saved Wed Aug 29 12:20:21 EEST 2018</comment>
+<entry key="checkBoxDoNotChangeWarehouse">false</entry>
+<entry key="dayMoneyMin">1000</entry>
+<entry key="spinnerMaxGoodsQuantity">35</entry>
+<entry key="dayMoneyMax">1500</entry>
+<entry key="checkBoxOpenFiles">true</entry>
+</properties>
