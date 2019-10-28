@@ -15,7 +15,7 @@ public class GoodsPrice implements Comparable<GoodsPrice> {
 		this.priceWVAT = priceWVAT;
 		this.wharehouseRowIndex = wharehouseRowIndex;
 		if (quantity > 0) {
-			this.sellPrice = Goods.round(priceWVAT / quantity * 1.3,
+			this.sellPrice = Goods.round(priceWVAT / quantity * 1.5,
 					Goods.SELL_PRICE_ROUND, BigDecimal.ROUND_HALF_UP);
 			this.buyPriceWaVAT = Goods.round((priceWVAT / quantity) / 1.2,
 					Goods.BUY_PRICE_ROUND, BigDecimal.ROUND_HALF_UP);

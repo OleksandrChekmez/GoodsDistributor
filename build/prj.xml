@@ -3,7 +3,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>c:\Users\chekm\git\GoodsDistributor\build\GoodsDistributor.jar</jar>
-  <outfile>c:\Users\chekm\git\GoodsDistributor\build\GoodsDistributor1_4.exe</outfile>
+  <outfile>c:\Users\chekm\git\GoodsDistributor\build\GoodsDistributor1_5.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
@@ -18,23 +18,23 @@
     <path></path>
     <bundledJre64Bit>false</bundledJre64Bit>
     <bundledJreAsFallback>false</bundledJreAsFallback>
-    <minVersion>1.7.0</minVersion>
+    <minVersion>1.8.0</minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
     <runtimeBits>64/32</runtimeBits>
     <maxHeapSize>2048</maxHeapSize>
   </jre>
   <versionInfo>
-    <fileVersion>1.4.0.0</fileVersion>
-    <txtFileVersion>v1.4</txtFileVersion>
+    <fileVersion>1.5.0.0</fileVersion>
+    <txtFileVersion>v1.5</txtFileVersion>
     <fileDescription>Товарный калькулятор</fileDescription>
     <copyright>Oleksandr Chekmez</copyright>
-    <productVersion>1.4.0.0</productVersion>
-    <txtProductVersion>v1.4</txtProductVersion>
+    <productVersion>1.5.0.0</productVersion>
+    <txtProductVersion>v1.5</txtProductVersion>
     <productName>Товарный калькулятор</productName>
     <companyName></companyName>
     <internalName>Товарный калькулятор</internalName>
-    <originalFilename>GoodsDistributor1_4.exe</originalFilename>
+    <originalFilename>GoodsDistributor1_5.exe</originalFilename>
     <trademarks></trademarks>
     <language>RUSSIAN</language>
   </versionInfo>

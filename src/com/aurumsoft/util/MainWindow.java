@@ -137,7 +137,7 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		frame.setTitle("Товарный калькулятор v1.4");
+		frame.setTitle("Товарный калькулятор v1.5");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 790, 320);
 		frame.setMinimumSize(new Dimension(790, 320));
@@ -778,8 +778,10 @@ public class MainWindow {
 				return;
 			}
 		}
+		
 		// hide rows with no goods:
 		if (isFirstPart) {
+			log.debug("Hide rows without goods");
 			for (int j = 4; j < sheet1.getLastRowNum(); j++) {
 				Row row = sheetTotal.getRow(j);
 				Row row1 = sheet1.getRow(j);
@@ -811,18 +813,23 @@ public class MainWindow {
 
 		// update date
 		sheetTotal.getRow(2).getCell(2).setCellValue(df.format(calendar.getTime()));
+		log.debug("Update date");
 
 		if (statementsWorkBook instanceof HSSFWorkbook) {
 			HSSFFormulaEvaluator.evaluateAllFormulaCells((HSSFWorkbook) statementsWorkBook);
+			log.debug("evaluateAllFormulaCells");
 		} else if (statementsWorkBook instanceof XSSFWorkbook) {
 			XSSFFormulaEvaluator.evaluateAllFormulaCells((XSSFWorkbook) statementsWorkBook);
+			log.debug("evaluateAllFormulaCells");
 		}
 
 		try {
-			// save workbook
+			// save workbook			
+			log.debug("save workbook");
 			FileOutputStream fileOut = new FileOutputStream(statementsFile);
 			statementsWorkBook.write(fileOut);
 			fileOut.close();
+			log.debug("save done");
 			if (isOpenExcel) {
 				try {
 					Desktop desktop = null;
