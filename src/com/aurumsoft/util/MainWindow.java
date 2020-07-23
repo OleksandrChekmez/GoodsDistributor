@@ -4,7 +4,10 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -22,14 +25,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -38,11 +45,14 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -56,12 +66,14 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.poi.hssf.usermodel.HSSFFormulaEvaluator;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.ss.util.CellUtil;
 import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -137,11 +149,20 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		frame.setTitle("Товарный калькулятор v1.5");
+		frame.setTitle("Товарный калькулятор v1.6");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 790, 320);
 		frame.setMinimumSize(new Dimension(790, 320));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		JTabbedPane tabbedPane = new JTabbedPane();
+		JPanel container1 = new JPanel();
+		tabbedPane.addTab("Набивачка", container1);
+
+		JPanel container2 = new JPanel();
+		tabbedPane.addTab("Сума", container2);
+
+		createSumPane(container2);
 
 		JLabel label = new JLabel("Остатки:");
 
@@ -151,7 +172,9 @@ public class MainWindow {
 		btnSelectWarehouseFile = new JButton("Выбрать...");
 		btnSelectWarehouseFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				selectFolder(warehouseFilePathField);
+				File[] f = selectFolder(false);
+				if (f != null)
+					warehouseFilePathField.setText(f[0].getAbsolutePath());
 			}
 		});
 
@@ -163,7 +186,9 @@ public class MainWindow {
 		btnSelectStatementFile = new JButton("Выбрать...");
 		btnSelectStatementFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				selectFolder(statementFilePathField);
+				File[] f = selectFolder(false);
+				if (f != null)
+					statementFilePathField.setText(f[0].getAbsolutePath());
 			}
 		});
 
@@ -266,7 +291,7 @@ public class MainWindow {
 
 		JLabel label_3 = new JLabel("Максимальное количество товара:");
 
-		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
+		GroupLayout groupLayout = new GroupLayout(container1);
 		groupLayout
 				.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
 						.addGroup(groupLayout.createSequentialGroup().addContainerGap()
@@ -390,8 +415,494 @@ public class MainWindow {
 		excludedGoodsListArea.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		scrollPane.setViewportView(excludedGoodsListArea);
 		loadSavedOptions();
-		frame.getContentPane().setLayout(groupLayout);
+		container1.setLayout(groupLayout);
+		frame.getContentPane().add(tabbedPane);
 
+	}
+
+	private void createSumPane(JPanel container2) {
+		JLabel label = new JLabel("Файлы для суммирования:");
+
+		DefaultListModel<File> selectedFilesToAddModel = new DefaultListModel<File>();
+		JList<File> selectedFilesToAdd = new JList<File>(selectedFilesToAddModel);
+		JScrollPane listScroller = new JScrollPane(selectedFilesToAdd);
+		JButton btnAddFile = new JButton("Добавить...");
+		btnAddFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				File[] f = selectFolder(true);
+				if (f != null) {
+					for (File file : f) {
+						selectedFilesToAddModel.addElement(file);
+					}
+
+				}
+			}
+		});
+		JButton btnRemoveFile = new JButton("Удалить");
+		btnRemoveFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				File f = selectedFilesToAdd.getSelectedValue();
+				if (f != null) {
+					selectedFilesToAddModel.removeElement(f);
+				}
+			}
+		});
+
+		JButton btnRemoveAllFile = new JButton("Удалить все");
+		btnRemoveAllFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				selectedFilesToAddModel.removeAllElements();
+
+			}
+		});
+		JButton btnSumm = new JButton("Cуммировать");
+		btnSumm.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				sumFiles(selectedFilesToAddModel);
+			}
+		});
+		container2.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.WEST;
+		c.insets = new Insets(2, 2, 2, 2);
+		container2.add(label, c);
+		c.gridx = 0;
+		c.gridy = 1;
+		c.weightx = 1;
+		c.weighty = 1;
+		c.fill = GridBagConstraints.BOTH;
+		c.gridheight = 4;
+		container2.add(listScroller, c);
+		c.gridx = 1;
+		c.weightx = 0;
+		c.weighty = 0;
+		c.gridheight = 1;
+		c.gridy = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		container2.add(btnAddFile, c);
+		c.gridx = 1;
+		c.gridy = 2;
+		container2.add(btnRemoveFile, c);
+		c.gridx = 1;
+		c.gridy = 3;
+		container2.add(btnRemoveAllFile, c);
+		c.gridx = 1;
+		c.gridy = 4;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		container2.add(btnSumm, c);
+	}
+
+	protected void sumFiles(DefaultListModel<File> selectedFilesToAddModel) {
+		File targetFile = selectSaveFile();
+		if (targetFile != null) {
+			HashMap<String, SoldGoods> soldsGoods = new HashMap<String, SoldGoods>();
+			String fopName = "";
+			for (int i = 0; i < selectedFilesToAddModel.getSize(); i++) {
+				File file = selectedFilesToAddModel.get(i);
+				String fopNameTmp = readSourceFile(file, soldsGoods);
+				if (fopNameTmp != null) {
+					fopName = fopNameTmp;
+				}
+			}
+
+			saveGoodsTotal(soldsGoods, fopName, targetFile);
+		}
+	}
+
+	private void saveGoodsTotal(HashMap<String, SoldGoods> soldsGoods, String fopName, File targetFile) {
+		InputStream fileStream = null;
+		String templateFile = "sum_template.xls";
+		try {
+			fileStream = new FileInputStream(templateFile);
+		} catch (FileNotFoundException e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane.showMessageDialog(frame, "Файл шаблона не найден: " + templateFile, "Ошибка",
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		Workbook soldGoodsWorkBook = null;
+		try {
+			soldGoodsWorkBook = WorkbookFactory.create(fileStream);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane.showMessageDialog(frame,
+					"Невозможно открыть файл шаблона - " + templateFile
+							+ "\\nВозможно он поврежден.\nОткройте его в MS Excel и пересохраните!" + "\nОшибка: "
+							+ e.getLocalizedMessage(),
+					"Ошибка", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		Sheet sheet1 = soldGoodsWorkBook.getSheetAt(0);
+		Sheet sheet2 = soldGoodsWorkBook.getSheetAt(1);
+		writeSoldGoodsSheet(sheet1, soldsGoods, fopName);
+		writeSoldGoodsSheet(sheet2, soldsGoods, fopName);
+
+		try {
+
+			// save workbook
+			log.debug("save workbook");
+			FileOutputStream fileOut = new FileOutputStream(targetFile);
+			soldGoodsWorkBook.write(fileOut);
+			fileOut.close();
+			log.debug("save done");
+
+			try {
+				Desktop desktop = null;
+				if (Desktop.isDesktopSupported()) {
+					desktop = Desktop.getDesktop();
+				}
+				if (desktop != null) {
+					desktop.open(targetFile);
+				}
+			} catch (IOException ioe) {
+				log.error("Cannot open report in default viewer", ioe);
+			}
+
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane
+					.showMessageDialog(frame,
+							"Ошибка при сохранении файла результатов!\n" + e.getClass().getSimpleName() + " - "
+									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void writeSoldGoodsSheet(Sheet sheet1, HashMap<String, SoldGoods> soldsGoods, String fopName) {
+		try {
+			// write FOP name
+			Row topRow = sheet1.getRow(0);
+			for (Cell c : topRow) {
+				String cVal = getCellValue(c);
+				if (cVal != null && "ФОП".equals(cVal)) {
+					c.setCellValue(fopName);
+				}
+			}
+
+			// save goods
+			int headerRow = -1;
+			HashMap<Integer, Integer> dayColumnMap = new HashMap<Integer, Integer>();
+			ArrayList<Integer> nameColumns = new ArrayList<Integer>();
+			int totalColumn = -1;
+			for (Row row : sheet1) {
+				// find table header by "Наименование"
+				Cell firstColumnCell = row.getCell(0);
+				String cellVal = getCellValue(firstColumnCell);
+				if (cellVal != null) {
+					if (headerRow == -1) {
+						if ("Наименование".equals(cellVal)) {
+							headerRow = row.getRowNum();
+							// read header columns
+							Row dayNumberRow = sheet1.getRow(headerRow - 1);
+							for (int i = 0; i < dayNumberRow.getLastCellNum(); i++) {
+								Cell dCell = dayNumberRow.getCell(i);
+								Cell headCell = row.getCell(i);
+								String dayVal = getCellValue(dCell);
+								String headerVal = getCellValue(headCell);
+
+								if ("Наименование".equals(headerVal)) {
+									nameColumns.add(i);
+								}
+
+								if (dayVal != null && "Кол-во тов".equals(headerVal)) {
+									dayColumnMap.put(Integer.parseInt(dayVal), i);
+								}
+
+							}
+						}
+					} else {
+						break;
+					}
+				}
+			}
+			// write goods list
+			int goodsRow = headerRow + 1;
+			SoldGoods totalRow = new SoldGoods();
+			totalRow.setName("Итого");
+			for (Entry<String, SoldGoods> en : soldsGoods.entrySet()) {
+				String goodsName = en.getKey();
+				SoldGoods goodsData = en.getValue();
+				Row r = sheet1.getRow(goodsRow);
+
+				// write name and sell price
+				for (Integer nameColumn : nameColumns) {
+					Cell c = r.getCell(nameColumn);
+					c.setCellValue(goodsName);
+					c = r.getCell(nameColumn + 1);
+					c.setCellValue(goodsData.getSellPrice());
+				}
+
+				// write data by days
+				for (Entry<Integer, Integer> den : dayColumnMap.entrySet()) {
+					Integer day = den.getKey();
+					Integer column = den.getValue();
+					// Кол-во тов
+					Cell c = r.getCell(column);
+					Integer qty = goodsData.getQuantities().get(day);
+					if (qty != null) {
+						c.setCellValue(qty);
+					} else {
+						c.setCellValue(0.0);
+					}
+					// Сумма реал.с НДС
+					c = r.getCell(column + 1);
+					Double realPrice = goodsData.getPriceRealNDS().get(day);
+					Double totalRealPrice = totalRow.getPriceRealNDS().get(day);
+					if (realPrice != null) {
+						c.setCellValue(realPrice);
+						if (totalRealPrice != null) {
+							totalRow.getPriceRealNDS().put(day, totalRealPrice + realPrice);
+						} else {
+							totalRow.getPriceRealNDS().put(day, realPrice);
+						}
+					} else {
+						c.setCellValue(0.0);
+					}
+
+					// Сумма НДС
+					c = r.getCell(column + 2);
+					Double price = goodsData.getPriceNDS().get(day);
+					Double totalPrice = totalRow.getPriceNDS().get(day);
+					if (price != null) {
+						c.setCellValue(price);
+						if (totalPrice != null) {
+							totalRow.getPriceNDS().put(day, price + totalPrice);
+						} else {
+							totalRow.getPriceNDS().put(day, price);
+						}
+					} else {
+						c.setCellValue(0.0);
+					}
+
+					// Сумма без НДС
+					c = r.getCell(column + 3);
+					if (realPrice != null) {
+						c.setCellValue(realPrice / 1.2);
+					} else {
+						c.setCellValue(0.0);
+					}
+
+					// Цена без НДС
+					c = r.getCell(column + 4);
+					if (realPrice != null && qty != null && qty > 0) {
+						c.setCellValue((realPrice / 1.2) / qty);
+					} else {
+						c.setCellValue(0.0);
+					}
+				}
+
+				goodsRow++;
+			}
+
+			// write total row
+			Row r = sheet1.getRow(goodsRow);
+			Cell cell = r.getCell(0);
+			Workbook wb = cell.getRow().getSheet().getWorkbook();
+			CellStyle style = cell.getCellStyle();
+			org.apache.poi.ss.usermodel.Font oldFont = wb.getFontAt(style.getFontIndex());
+
+			org.apache.poi.ss.usermodel.Font boldFont = wb.createFont();
+			boldFont.setBold(true);
+			boldFont.setCharSet(oldFont.getCharSet());
+			boldFont.setFontHeightInPoints(oldFont.getFontHeightInPoints());
+			boldFont.setItalic(oldFont.getItalic());
+			boldFont.setStrikeout(oldFont.getStrikeout());
+			boldFont.setTypeOffset(oldFont.getTypeOffset());
+			boldFont.setUnderline(oldFont.getUnderline());
+			boldFont.setColor(oldFont.getColor());
+			// write name and sell price
+			for (Integer nameColumn : nameColumns) {
+				Cell c = r.getCell(nameColumn);
+				c.setCellValue(totalRow.getName());
+				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+			}
+			// write data by days
+			for (Entry<Integer, Integer> den : dayColumnMap.entrySet()) {
+				Integer day = den.getKey();
+				Integer column = den.getValue();
+
+				// Сумма реал.с НДС
+				Cell c = r.getCell(column + 1);
+				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+				Double realPrice = totalRow.getPriceRealNDS().get(day);
+				if (realPrice != null) {
+					c.setCellValue(realPrice);
+				} else {
+					c.setCellValue(0.0);
+				}
+
+				// Сумма НДС
+				c = r.getCell(column + 2);
+				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+				Double price = totalRow.getPriceNDS().get(day);
+				if (price != null) {
+					c.setCellValue(price);
+				} else {
+					c.setCellValue(0.0);
+				}
+
+				// Сумма без НДС
+				c = r.getCell(column + 3);
+				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+				if (realPrice != null) {
+					c.setCellValue(realPrice / 1.2);
+				} else {
+					c.setCellValue(0.0);
+				}
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane
+					.showMessageDialog(frame,
+							"Ошибка записи данных в результирующий файл!\n" + e.getClass().getSimpleName() + " - "
+									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+	}
+
+	private String readSourceFile(File file, HashMap<String, SoldGoods> soldsGoods) {
+		InputStream fileStream = null;
+		String fopName = null;
+		try {
+			fileStream = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane.showMessageDialog(frame, "Файл не найден: " + file.getAbsolutePath(), "Ошибка",
+					JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		Workbook soldGoodsWorkBook = null;
+		try {
+			soldGoodsWorkBook = WorkbookFactory.create(fileStream);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane.showMessageDialog(frame,
+					"Невозможно открыть файл - " + file.getName()
+							+ "\\nВозможно он поврежден.\nОткройте его в MS Excel и пересохраните!" + "\nОшибка: "
+							+ e.getLocalizedMessage(),
+					"Ошибка", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		Sheet sheet1 = soldGoodsWorkBook.getSheetAt(0);
+		Sheet sheet2 = soldGoodsWorkBook.getSheetAt(1);
+		readSoldGoodsSheet(file, sheet1, soldsGoods);
+		readSoldGoodsSheet(file, sheet2, soldsGoods);
+		try {
+			fopName = getCellValue(sheet1.getRow(0).getCell(0));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		return fopName;
+
+	}
+
+	private void readSoldGoodsSheet(File file, Sheet sheet1, HashMap<String, SoldGoods> soldsGoods) {
+		int headerRow = -1;
+		HashMap<Integer, Integer> dayColumnMap = new HashMap<Integer, Integer>();
+		try {
+			for (Row row : sheet1) {
+				// find table header by "Наименование"
+				Cell firstColumnCell = row.getCell(0);
+				String cellVal = getCellValue(firstColumnCell);
+				if (cellVal != null) {
+					if (headerRow == -1) {
+						if ("Наименование".equals(cellVal)) {
+							headerRow = row.getRowNum();
+							// read header columns
+							Row dayNumberRow = sheet1.getRow(headerRow - 1);
+							for (int i = 0; i < dayNumberRow.getLastCellNum(); i++) {
+								Cell dCell = dayNumberRow.getCell(i);
+								Cell headCell = row.getCell(i);
+								String dayVal = getCellValue(dCell);
+								String headerVal = getCellValue(headCell);
+								if ("Итого".equals(dayVal)) {
+									break;
+								}
+								if (dayVal != null && "Кол-во тов".equals(headerVal)) {
+									dayColumnMap.put(Integer.parseInt(dayVal), i);
+								}
+							}
+						}
+					} else {
+						// read goods list
+						if ("0.0".equals(cellVal)) {
+							break;
+						}
+						SoldGoods g = soldsGoods.get(cellVal);
+						if (g == null) {
+							g = new SoldGoods();
+							g.setName(cellVal);
+
+							Cell priceCell = row.getCell(1);
+							String sellPriceVal = getCellValue(priceCell);
+							try {
+								g.setSellPrice(Double.parseDouble(sellPriceVal));
+							} catch (Exception e) {
+								log.error(e.getLocalizedMessage(), e);
+								JOptionPane.showMessageDialog(frame,
+										"Продажная цена не цифра, строка " + (row.getRowNum() + 1) + ", лист "
+												+ sheet1.getSheetName() + " в файле " + file.getName() + "!\n"
+												+ e.getClass().getSimpleName() + " - " + e.getLocalizedMessage() + "\n"
+												+ getStackTrace(e),
+										"Ошибка", JOptionPane.ERROR_MESSAGE);
+								return;
+
+							}
+							soldsGoods.put(g.getName(), g);
+						}
+						// read quantities
+						for (Entry<Integer, Integer> en : dayColumnMap.entrySet()) {
+							Integer day = en.getKey();
+							Integer column = en.getValue();
+							Cell qtyCell = row.getCell(column);
+							Cell priceRealCell = row.getCell(column + 1);
+							Cell priceCell = row.getCell(column + 2);
+							String qtyVal = getCellValue(qtyCell);
+							String priceRealVal = getCellValue(priceRealCell);
+							String priceVal = getCellValue(priceCell);
+							if (qtyVal != null) {
+								int qty = (int) Math.round(Double.parseDouble(qtyVal));
+								double priceReal = Double.parseDouble(priceRealVal);
+								double price = Double.parseDouble(priceVal);
+								if (qty > 0) {
+									Integer oldQty = g.getQuantities().get(day);
+									if (oldQty == null) {
+										g.getQuantities().put(day, qty);
+									} else {
+										g.getQuantities().put(day, qty + oldQty);
+									}
+									Double oldRealPrice = g.getPriceRealNDS().get(day);
+									if (oldRealPrice == null) {
+										g.getPriceRealNDS().put(day, priceReal);
+									} else {
+										g.getPriceRealNDS().put(day, priceReal + oldRealPrice);
+									}
+									Double oldPrice = g.getPriceNDS().get(day);
+									if (oldPrice == null) {
+										g.getPriceNDS().put(day, price);
+									} else {
+										g.getPriceNDS().put(day, price + oldPrice);
+									}
+								}
+							}
+						}
+
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane
+					.showMessageDialog(frame,
+							"Ошибка при работе с файлом " + file.getName() + "!\n" + e.getClass().getSimpleName()
+									+ " - " + e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 	}
 
 	private static String removeUTF8BOM(String s) {
@@ -509,7 +1020,37 @@ public class MainWindow {
 		spinnerMaxGoodsQuantity.setEnabled(enable);
 	}
 
-	private void selectFolder(JTextField editField) {
+	private File selectSaveFile() {
+		JFileChooser fc = new JFileChooser(prevDir);
+		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fc.setFileFilter(new FileFilter() {
+
+			@Override
+			public String getDescription() {
+				return "Microsoft Excel";
+			}
+
+			@Override
+			public boolean accept(File f) {
+				if (f.isDirectory()) {
+					return true;
+				}
+				if (f.getName().trim().toLowerCase().endsWith(".xls")) {
+					return true;
+				}
+				return false;
+			}
+		});
+		int res = fc.showSaveDialog(frame);
+		if (res == JFileChooser.APPROVE_OPTION) {
+
+			File file = fc.getSelectedFile();
+			return file;
+		}
+		return null;
+	}
+
+	private File[] selectFolder(boolean multiSelectAllow) {
 		JFileChooser fc = new JFileChooser(prevDir);
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fc.setFileFilter(new FileFilter() {
@@ -533,13 +1074,23 @@ public class MainWindow {
 				return false;
 			}
 		});
-		fc.setMultiSelectionEnabled(false);
+		fc.setMultiSelectionEnabled(multiSelectAllow);
 		int res = fc.showOpenDialog(frame);
 		if (res == JFileChooser.APPROVE_OPTION) {
-			File file = fc.getSelectedFile();
-			prevDir = file.getParentFile().getAbsolutePath();
-			editField.setText(file.getAbsolutePath());
+			if (multiSelectAllow) {
+				File[] files = fc.getSelectedFiles();
+				prevDir = files[0].getParentFile().getAbsolutePath();
+				return files;
+			} else {
+
+				File file = fc.getSelectedFile();
+				prevDir = file.getParentFile().getAbsolutePath();
+				File[] files = new File[1];
+				files[0] = file;
+				return files;
+			}
 		}
+		return null;
 	}
 
 	private static Image getIcon() {
@@ -778,7 +1329,7 @@ public class MainWindow {
 				return;
 			}
 		}
-		
+
 		// hide rows with no goods:
 		if (isFirstPart) {
 			log.debug("Hide rows without goods");
@@ -824,7 +1375,7 @@ public class MainWindow {
 		}
 
 		try {
-			// save workbook			
+			// save workbook
 			log.debug("save workbook");
 			FileOutputStream fileOut = new FileOutputStream(statementsFile);
 			statementsWorkBook.write(fileOut);
@@ -931,7 +1482,7 @@ public class MainWindow {
 					} catch (Exception e) {
 						log.error(e.getLocalizedMessage(), e);
 						JOptionPane.showMessageDialog(frame,
-								"Обшибка при работе с файлом ведомости!\n" + e.getClass().getSimpleName() + " - "
+								"Ошибка при работе с файлом ведомости!\n" + e.getClass().getSimpleName() + " - "
 										+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
 								"Ошибка", JOptionPane.ERROR_MESSAGE);
 						return false;
