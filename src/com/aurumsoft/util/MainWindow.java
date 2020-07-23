@@ -149,7 +149,7 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		frame.setTitle("Товарный калькулятор v1.6");
+		frame.setTitle("Товарный калькулятор v1.6.1");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 790, 320);
 		frame.setMinimumSize(new Dimension(790, 320));
@@ -495,7 +495,7 @@ public class MainWindow {
 	}
 
 	protected void sumFiles(DefaultListModel<File> selectedFilesToAddModel) {
-		File targetFile = selectSaveFile();
+		String targetFile = selectSaveFile();
 		if (targetFile != null) {
 			HashMap<String, SoldGoods> soldsGoods = new HashMap<String, SoldGoods>();
 			String fopName = "";
@@ -511,7 +511,7 @@ public class MainWindow {
 		}
 	}
 
-	private void saveGoodsTotal(HashMap<String, SoldGoods> soldsGoods, String fopName, File targetFile) {
+	private void saveGoodsTotal(HashMap<String, SoldGoods> soldsGoods, String fopName, String targetFile) {
 		InputStream fileStream = null;
 		String templateFile = "sum_template.xls";
 		try {
@@ -554,7 +554,7 @@ public class MainWindow {
 					desktop = Desktop.getDesktop();
 				}
 				if (desktop != null) {
-					desktop.open(targetFile);
+					desktop.open(new File(targetFile));
 				}
 			} catch (IOException ioe) {
 				log.error("Cannot open report in default viewer", ioe);
@@ -732,6 +732,14 @@ public class MainWindow {
 				} else {
 					c.setCellValue(0.0);
 				}
+				// save Сумма реал.с НДС into Quantity total
+				c = r.getCell(column);
+				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+				if (realPrice != null) {
+					c.setCellValue(realPrice);
+				} else {
+					c.setCellValue(0.0);
+				}
 
 				// Сумма НДС
 				c = r.getCell(column + 2);
@@ -751,6 +759,22 @@ public class MainWindow {
 				} else {
 					c.setCellValue(0.0);
 				}
+			}
+
+			// hide sell price column and names except first
+			for (Integer nameColumn : nameColumns) {
+				if (nameColumn != 0)
+					sheet1.setColumnHidden(nameColumn, true);
+				sheet1.setColumnHidden(nameColumn + 1, true);
+			}
+			// hide columns with NDS prices
+			for (Entry<Integer, Integer> den : dayColumnMap.entrySet()) {
+				Integer column = den.getValue();
+				sheet1.setColumnHidden(column + 1, true);
+				sheet1.setColumnHidden(column + 2, true);
+				sheet1.setColumnWidth(column, 1950);
+				sheet1.setColumnWidth(column + 3, 1950);
+//				sheet1.setColumnWidth(column + 4, 1960);
 			}
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
@@ -1020,7 +1044,7 @@ public class MainWindow {
 		spinnerMaxGoodsQuantity.setEnabled(enable);
 	}
 
-	private File selectSaveFile() {
+	private String selectSaveFile() {
 		JFileChooser fc = new JFileChooser(prevDir);
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fc.setFileFilter(new FileFilter() {
@@ -1045,7 +1069,11 @@ public class MainWindow {
 		if (res == JFileChooser.APPROVE_OPTION) {
 
 			File file = fc.getSelectedFile();
-			return file;
+			String path = file.getAbsolutePath();
+			if (!path.toLowerCase().endsWith(".xls")) {
+				path = path + ".xls";
+			}
+			return path;
 		}
 		return null;
 	}
