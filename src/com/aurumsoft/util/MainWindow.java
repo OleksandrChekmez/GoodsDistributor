@@ -423,8 +423,8 @@ public class MainWindow {
 	private void createSumPane(JPanel container2) {
 		JLabel label = new JLabel("Файлы для суммирования:");
 
-		DefaultListModel<File> selectedFilesToAddModel = new DefaultListModel<File>();
-		JList<File> selectedFilesToAdd = new JList<File>(selectedFilesToAddModel);
+		final DefaultListModel<File> selectedFilesToAddModel = new DefaultListModel<File>();
+		final JList<File> selectedFilesToAdd = new JList<File>(selectedFilesToAddModel);
 		JScrollPane listScroller = new JScrollPane(selectedFilesToAdd);
 		JButton btnAddFile = new JButton("Добавить...");
 		btnAddFile.addActionListener(new ActionListener() {
@@ -513,7 +513,7 @@ public class MainWindow {
 
 	private void saveGoodsTotal(HashMap<String, SoldGoods> soldsGoods, String fopName, String targetFile) {
 		InputStream fileStream = null;
-		String templateFile = "sum_template.xls";
+		String templateFile = "sum_template.xls";		
 		try {
 			fileStream = new FileInputStream(templateFile);
 		} catch (FileNotFoundException e) {
@@ -534,10 +534,12 @@ public class MainWindow {
 					"Ошибка", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		Sheet sheet1 = soldGoodsWorkBook.getSheetAt(0);
-		Sheet sheet2 = soldGoodsWorkBook.getSheetAt(1);
+		Sheet sheet1 = soldGoodsWorkBook.getSheet("1");
+		Sheet sheet2 = soldGoodsWorkBook.getSheet("2");
+		Sheet sheet3 = soldGoodsWorkBook.getSheet("Сума");
 		writeSoldGoodsSheet(sheet1, soldsGoods, fopName);
 		writeSoldGoodsSheet(sheet2, soldsGoods, fopName);
+		writeTotalSheet(sheet3, soldsGoods, fopName);
 
 		try {
 
@@ -776,6 +778,154 @@ public class MainWindow {
 				sheet1.setColumnWidth(column + 3, 1950);
 //				sheet1.setColumnWidth(column + 4, 1960);
 			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+			JOptionPane
+					.showMessageDialog(frame,
+							"Ошибка записи данных в результирующий файл!\n" + e.getClass().getSimpleName() + " - "
+									+ e.getLocalizedMessage() + "\n" + getStackTrace(e),
+							"Ошибка", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+	}
+	
+	private void writeTotalSheet(Sheet sheet1, HashMap<String, SoldGoods> soldsGoods, String fopName) {
+		try {
+			// write FOP name
+			Row topRow = sheet1.getRow(0);
+			for (Cell c : topRow) {
+				String cVal = getCellValue(c);
+				if (cVal != null && "ФОП".equals(cVal)) {
+					c.setCellValue(fopName);
+				}
+			}
+
+			// save goods
+			int headerRow = -1;			
+			ArrayList<Integer> nameColumns = new ArrayList<Integer>();
+			int totalColumn = -1;
+			for (Row row : sheet1) {
+				// find table header by "Наименование"
+				Cell firstColumnCell = row.getCell(0);
+				String cellVal = getCellValue(firstColumnCell);
+				if (cellVal != null) {
+					if (headerRow == -1) {
+						if ("Наименование".equals(cellVal)) {
+							headerRow = row.getRowNum();
+							// read header columns
+							Row dayNumberRow = sheet1.getRow(headerRow - 1);
+							for (int i = 0; i < dayNumberRow.getLastCellNum(); i++) {
+								Cell dCell = dayNumberRow.getCell(i);
+								Cell headCell = row.getCell(i);
+								String dayVal = getCellValue(dCell);
+								String headerVal = getCellValue(headCell);
+
+								if ("Наименование".equals(headerVal)) {
+									nameColumns.add(i);
+								}								
+
+							}
+						}
+					} else {
+						break;
+					}
+				}
+			}
+			// write goods list
+			int goodsRow = headerRow + 1;
+			SoldGoods totalRow = new SoldGoods();
+			totalRow.setName("Итого");			
+			for (Entry<String, SoldGoods> en : soldsGoods.entrySet()) {
+				String goodsName = en.getKey();
+				SoldGoods goodsData = en.getValue();
+				Row r = sheet1.getRow(goodsRow);
+
+				// write name and sell price
+				for (Integer nameColumn : nameColumns) {
+					Cell c = r.getCell(nameColumn);
+					c.setCellValue(goodsName);
+					c = r.getCell(nameColumn + 1);
+					c.setCellValue(goodsData.getSellPrice());
+					Integer qty = goodsData.getQuantities().values().stream().reduce(0, Integer::sum);					
+					c = r.getCell(nameColumn + 2);
+					c.setCellValue(qty);
+				}				
+
+				goodsRow++;
+			}
+
+			// write total row
+			Row r = sheet1.getRow(goodsRow);
+			Cell cell = r.getCell(0);
+			Workbook wb = cell.getRow().getSheet().getWorkbook();
+			CellStyle style = cell.getCellStyle();
+			org.apache.poi.ss.usermodel.Font oldFont = wb.getFontAt(style.getFontIndex());
+
+			org.apache.poi.ss.usermodel.Font boldFont = wb.createFont();
+			boldFont.setBold(true);
+			boldFont.setCharSet(oldFont.getCharSet());
+			boldFont.setFontHeightInPoints(oldFont.getFontHeightInPoints());
+			boldFont.setItalic(oldFont.getItalic());
+			boldFont.setStrikeout(oldFont.getStrikeout());
+			boldFont.setTypeOffset(oldFont.getTypeOffset());
+			boldFont.setUnderline(oldFont.getUnderline());
+			boldFont.setColor(oldFont.getColor());
+			// write name and sell price
+			for (Integer nameColumn : nameColumns) {
+				Cell c = r.getCell(nameColumn);
+				c.setCellValue(totalRow.getName());
+				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+			}
+			// write data by days
+//			for (Entry<Integer, Integer> den : dayColumnMap.entrySet()) {
+//				Integer day = den.getKey();
+//				Integer column = den.getValue();
+//
+//				// Сумма реал.с НДС
+//				Cell c = r.getCell(column + 1);
+//				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+//				Double realPrice = totalRow.getPriceRealNDS().get(day);
+//				if (realPrice != null) {
+//					c.setCellValue(realPrice);
+//				} else {
+//					c.setCellValue(0.0);
+//				}
+//				// save Сумма реал.с НДС into Quantity total
+//				c = r.getCell(column);
+//				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+//				if (realPrice != null) {
+//					c.setCellValue(realPrice);
+//				} else {
+//					c.setCellValue(0.0);
+//				}
+//
+//				// Сумма НДС
+//				c = r.getCell(column + 2);
+//				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+//				Double price = totalRow.getPriceNDS().get(day);
+//				if (price != null) {
+//					c.setCellValue(price);
+//				} else {
+//					c.setCellValue(0.0);
+//				}
+//
+//				// Сумма без НДС
+//				c = r.getCell(column + 3);
+//				CellUtil.setCellStyleProperty(c, CellUtil.FONT, boldFont.getIndex());
+//				if (realPrice != null) {
+//					c.setCellValue(realPrice / 1.2);
+//				} else {
+//					c.setCellValue(0.0);
+//				}
+//			}
+
+			// hide sell price column and names except first
+//			for (Integer nameColumn : nameColumns) {
+//				if (nameColumn != 0)
+//					sheet1.setColumnHidden(nameColumn, true);
+//				sheet1.setColumnHidden(nameColumn + 1, true);
+//			}
+			
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
 			JOptionPane
