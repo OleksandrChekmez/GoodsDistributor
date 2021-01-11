@@ -25,12 +25,12 @@
     <maxHeapSize>2048</maxHeapSize>
   </jre>
   <versionInfo>
-    <fileVersion>1.6.1.0</fileVersion>
-    <txtFileVersion>v1.6.1</txtFileVersion>
+    <fileVersion>1.6.2.0</fileVersion>
+    <txtFileVersion>v1.6.2</txtFileVersion>
     <fileDescription>Товарный калькулятор</fileDescription>
     <copyright>Oleksandr Chekmez</copyright>
-    <productVersion>1.6.1.0</productVersion>
-    <txtProductVersion>v1.6.1</txtProductVersion>
+    <productVersion>1.6.2.0</productVersion>
+    <txtProductVersion>v1.6.2</txtProductVersion>
     <productName>Товарный калькулятор</productName>
     <companyName></companyName>
     <internalName>Товарный калькулятор</internalName>

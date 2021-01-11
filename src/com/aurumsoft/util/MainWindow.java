@@ -149,7 +149,7 @@ public class MainWindow {
 	private void initialize() {
 		frame = new JFrame();
 
-		frame.setTitle("Товарный калькулятор v1.6.1");
+		frame.setTitle("Товарный калькулятор v1.6.2");
 		frame.setIconImage(getIcon());
 		frame.setBounds(100, 100, 790, 320);
 		frame.setMinimumSize(new Dimension(790, 320));
